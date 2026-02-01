@@ -35,5 +35,9 @@ struct ContentView: View {
                 }
             )
         }
+        .onReceive(NotificationCenter.default.publisher(for: .openAddTodaysGraph)) { _ in
+            selectedTab = .checkIn
+            showAddTodaysGraphSheet = true
+        }
     }
 }

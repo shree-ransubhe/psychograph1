@@ -40,11 +40,12 @@ struct AddTodaysGraphView: View {
             }
             .navigationDestination(item: $selectedCategory) { category in
                 SubcategoryView(
-                    date: selectedDate,
+                    date: $selectedDate,
                     initialCategory: category,
                     onDone: { selectedCategory = nil },
                     onCompleteAndGoToReport: onCompleteAndGoToReport
                 )
+                .id(selectedDate)
             }
         }
     }

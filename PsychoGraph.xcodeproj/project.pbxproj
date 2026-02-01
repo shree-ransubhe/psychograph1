@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		F1000001 /* PsychoGraphApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000011 /* PsychoGraphApp.swift */; };
+		F1000050 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000040 /* AppDelegate.swift */; };
 		F1000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000012 /* ContentView.swift */; };
 		F1000003 /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000013 /* Category.swift */; };
 		F1000004 /* CheckInRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000014 /* CheckInRecord.swift */; };
@@ -26,6 +27,7 @@
 /* Begin PBXFileReference section */
 		F1000010 /* PsychoGraph1.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PsychoGraph1.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F1000011 /* PsychoGraphApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PsychoGraphApp.swift; sourceTree = "<group>"; };
+		F1000040 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		F1000012 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		F1000013 /* Category.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Category.swift; sourceTree = "<group>"; };
 		F1000014 /* CheckInRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckInRecord.swift; sourceTree = "<group>"; };
@@ -57,6 +59,7 @@
 			isa = PBXGroup;
 			children = (
 				F1000011 /* PsychoGraphApp.swift */,
+				F1000040 /* AppDelegate.swift */,
 				F1000012 /* ContentView.swift */,
 				F1000022 /* Models */,
 				F1000023 /* Services */,
@@ -201,6 +204,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F1000001 /* PsychoGraphApp.swift in Sources */,
+				F1000050 /* AppDelegate.swift in Sources */,
 				F1000002 /* ContentView.swift in Sources */,
 				F1000003 /* Category.swift in Sources */,
 				F1000004 /* CheckInRecord.swift in Sources */,

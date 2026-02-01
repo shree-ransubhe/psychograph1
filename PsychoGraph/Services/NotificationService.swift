@@ -1,5 +1,13 @@
 import UserNotifications
 
+/// Identifier for the daily check-in reminder; used for scheduling and deep-link handling.
+let kPsychographDailyReminderIdentifier = "psychograph_daily"
+
+extension Notification.Name {
+    /// Post this when the user taps the daily reminder notification; ContentView presents AddTodaysGraphView.
+    static let openAddTodaysGraph = Notification.Name("PsychoGraphOpenAddTodaysGraph")
+}
+
 final class NotificationService {
     static let shared = NotificationService()
 
@@ -12,7 +20,7 @@ final class NotificationService {
     }
 
     func scheduleDailyReminder(at hour: Int = 8, minute: Int = 0) {
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["psychograph_daily"])
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [kPsychographDailyReminderIdentifier])
 
         let content = UNMutableNotificationContent()
         content.title = "PsychoGraph Check-in"
@@ -24,13 +32,13 @@ final class NotificationService {
         dateComponents.minute = minute
 
         let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
-        let request = UNNotificationRequest(identifier: "psychograph_daily", content: content, trigger: trigger)
+        let request = UNNotificationRequest(identifier: kPsychographDailyReminderIdentifier, content: content, trigger: trigger)
 
         UNUserNotificationCenter.current().add(request)
     }
 
     func cancelDailyReminder() {
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["psychograph_daily"])
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [kPsychographDailyReminderIdentifier])
     }
 
     /// Reminds the user to compile the monthly report (e.g. 1st of each month). Report compilation is a separate module to be added later.

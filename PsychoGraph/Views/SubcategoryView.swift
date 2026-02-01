@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SubcategoryView: View {
-    let date: Date
+    @Binding var date: Date
     let initialCategory: PsychoCategory
     let onDone: () -> Void
     let onCompleteAndGoToReport: () -> Void
@@ -44,6 +44,7 @@ struct SubcategoryView: View {
             }
         }
         .onAppear { loadSelections() }
+        .onChange(of: date) { _, _ in loadSelections() }
     }
 
     @ViewBuilder

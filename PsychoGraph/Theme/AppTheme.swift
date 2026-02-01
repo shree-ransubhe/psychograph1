@@ -14,6 +14,8 @@ enum AppTheme {
     static let divider = Color(red: 0.9, green: 0.9, blue: 0.92)
     static let filledDot = Color(red: 0.32, green: 0.52, blue: 0.52)
     static let emptyDot = Color(red: 0.88, green: 0.88, blue: 0.9)
+    /// Grey background for section header rows (भय, राग, धैर्य, शांति)
+    static let sectionHeaderGrey = Color(red: 0.94, green: 0.94, blue: 0.95)
 
     // MARK: - Spacing
     static let spacingXS: CGFloat = 4

@@ -9,6 +9,16 @@ enum PsychoCategory: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    /// Letter in parentheses for report grid (e.g. (अ) for Category A)
+    var reportLetter: String {
+        switch self {
+        case .A: return "(अ)"
+        case .B: return "(ब)"
+        case .C: return "(क)"
+        case .D: return "(ड)"
+        }
+    }
+
     /// Display name for section headers (e.g. भय for Category A)
     var displayName: String {
         switch self {
