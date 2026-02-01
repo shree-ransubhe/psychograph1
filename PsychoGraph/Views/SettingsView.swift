@@ -38,6 +38,14 @@ struct SettingsView: View {
                 reportDataSection
                 dataBackupSection
                 failureLogSection
+                Section {
+                    Text("Beta-1.0")
+                        .font(AppTheme.captionSecondary())
+                        .foregroundStyle(AppTheme.textTertiary)
+                        .frame(maxWidth: .infinity)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 24, trailing: 20))
+                }
             }
             .listStyle(.insetGrouped)
             .navigationTitle("Settings")
