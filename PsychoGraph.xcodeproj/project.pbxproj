@@ -22,6 +22,15 @@
 		F100000D /* AddTodaysGraphView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F100001D /* AddTodaysGraphView.swift */; };
 		F100000E /* PrimaryButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F100001E /* PrimaryButton.swift */; };
 		F100000F /* SubcategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F100001F /* SubcategoryView.swift */; };
+		F1000060 /* PDFReportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000062 /* PDFReportService.swift */; };
+		F1000061 /* ExportReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000063 /* ExportReportView.swift */; };
+		F1000064 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000065 /* ProfileView.swift */; };
+		F1000067 /* DefaultProfile.plist in Resources */ = {isa = PBXBuildFile; fileRef = F1000066 /* DefaultProfile.plist */; };
+		F1000069 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000068 /* LoginView.swift */; };
+		F100006B /* iCloudBackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F100006A /* iCloudBackupService.swift */; };
+		F100006D /* FailureLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F100006E /* FailureLogger.swift */; };
+		F100006F /* FailureLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000070 /* FailureLogView.swift */; };
+		F1000071 /* MailComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000072 /* MailComposeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,6 +51,16 @@
 		F100001D /* AddTodaysGraphView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTodaysGraphView.swift; sourceTree = "<group>"; };
 		F100001E /* PrimaryButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryButton.swift; sourceTree = "<group>"; };
 		F100001F /* SubcategoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubcategoryView.swift; sourceTree = "<group>"; };
+		F1000062 /* PDFReportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFReportService.swift; sourceTree = "<group>"; };
+		F1000063 /* ExportReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportReportView.swift; sourceTree = "<group>"; };
+		F1000065 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		F1000066 /* DefaultProfile.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = DefaultProfile.plist; sourceTree = "<group>"; };
+		F1000068 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		F100006A /* iCloudBackupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iCloudBackupService.swift; sourceTree = "<group>"; };
+		F100006C /* PsychoGraph.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PsychoGraph.entitlements; sourceTree = "<group>"; };
+		F100006E /* FailureLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FailureLogger.swift; sourceTree = "<group>"; };
+		F1000070 /* FailureLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FailureLogView.swift; sourceTree = "<group>"; };
+		F1000072 /* MailComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailComposeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +87,8 @@
 				F1000032 /* Theme */,
 				F100001A /* Assets.xcassets */,
 				F100001B /* Info.plist */,
+				F100006C /* PsychoGraph.entitlements */,
+				F1000066 /* DefaultProfile.plist */,
 			);
 			path = PsychoGraph;
 			sourceTree = "<group>";
@@ -94,6 +115,9 @@
 			children = (
 				F1000015 /* StorageService.swift */,
 				F1000016 /* NotificationService.swift */,
+				F1000062 /* PDFReportService.swift */,
+				F100006A /* iCloudBackupService.swift */,
+				F100006E /* FailureLogger.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -106,6 +130,11 @@
 				F100001F /* SubcategoryView.swift */,
 				F1000018 /* GraphView.swift */,
 				F1000019 /* SettingsView.swift */,
+				F1000065 /* ProfileView.swift */,
+				F1000068 /* LoginView.swift */,
+				F1000063 /* ExportReportView.swift */,
+				F1000070 /* FailureLogView.swift */,
+				F1000072 /* MailComposeView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -193,6 +222,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F100000A /* Assets.xcassets in Resources */,
+				F1000067 /* DefaultProfile.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -217,6 +247,14 @@
 				F100000D /* AddTodaysGraphView.swift in Sources */,
 				F100000E /* PrimaryButton.swift in Sources */,
 				F100000F /* SubcategoryView.swift in Sources */,
+				F1000060 /* PDFReportService.swift in Sources */,
+				F1000061 /* ExportReportView.swift in Sources */,
+				F1000064 /* ProfileView.swift in Sources */,
+				F1000069 /* LoginView.swift in Sources */,
+				F100006B /* iCloudBackupService.swift in Sources */,
+				F100006D /* FailureLogger.swift in Sources */,
+				F100006F /* FailureLogView.swift in Sources */,
+				F1000071 /* MailComposeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -347,6 +385,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
+				CODE_SIGN_ENTITLEMENTS = PsychoGraph/PsychoGraph.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
@@ -379,6 +419,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
+				CODE_SIGN_ENTITLEMENTS = PsychoGraph/PsychoGraph.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";

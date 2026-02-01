@@ -6,6 +6,10 @@ let kPsychographDailyReminderIdentifier = "psychograph_daily"
 extension Notification.Name {
     /// Post this when the user taps the daily reminder notification; ContentView presents AddTodaysGraphView.
     static let openAddTodaysGraph = Notification.Name("PsychoGraphOpenAddTodaysGraph")
+    /// Post when user logs out from Profile; app shows LoginView again.
+    static let userDidLogout = Notification.Name("PsychoGraphUserDidLogout")
+    /// Post when report data (check-ins, benevolence) is cleared; GraphView refreshes.
+    static let psychographReportDataDidClear = Notification.Name("PsychoGraphReportDataDidClear")
 }
 
 final class NotificationService {

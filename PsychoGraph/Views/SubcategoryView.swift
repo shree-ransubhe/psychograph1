@@ -17,6 +17,12 @@ struct SubcategoryView: View {
         return f.string(from: start)
     }
 
+    private var formattedLoggingDate: String {
+        let f = DateFormatter()
+        f.dateStyle = .medium
+        return f.string(from: date)
+    }
+
     private var categories: [PsychoCategory] { PsychoCategory.allCases }
 
     var body: some View {
@@ -36,7 +42,7 @@ struct SubcategoryView: View {
             .buttonStyle(.borderedProminent)
             .padding()
         }
-        .navigationTitle(initialCategory.displayName)
+        .navigationTitle("Select Subcategory")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -54,9 +60,16 @@ struct SubcategoryView: View {
             set: { selectedIndices[category.rawValue] = $0 }
         )
         List {
-            Section(category.displayName) {
+            Section {
                 ForEach(Array(category.subcategoryLabels.enumerated()), id: \.offset) { index, label in
                     subcategoryToggle(binding: binding, index: index, label: label)
+                }
+            } header: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(formattedLoggingDate)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Text(category.displayName)
                 }
             }
         }

@@ -50,6 +50,54 @@ Edit `PsychoGraph/Models/Category.swift` and replace the `subcategoryLabels` arr
 
 ---
 
+## Closed user group (invite-only, up to 25 users)
+
+For testing, the app uses a **closed user group**: only users whose credentials are in the bundle can log in. You manually edit `PsychoGraph/DefaultProfile.plist` before each build to add up to **25** (email, AKSK) pairs.
+
+- **Login:** Username = AKSK, Password = Email (must match one entry in the plist).
+- **Format:** `DefaultProfile.plist` has a `Profiles` array. Each item is a dict with `ProfileEmail` and `ProfileAKSK`. Add one dict per user (max 25). Example:
+
+```xml
+<key>Profiles</key>
+<array>
+  <dict>
+    <key>ProfileEmail</key>
+    <string>user1@example.com</string>
+    <key>ProfileAKSK</key>
+    <string>1234</string>
+  </dict>
+  <dict>
+    <key>ProfileEmail</key>
+    <string>user2@example.com</string>
+    <key>ProfileAKSK</key>
+    <string>5678</string>
+  </dict>
+</array>
+```
+
+- **Workflow:** Edit the plist → build in Xcode → distribute the build (e.g. Ad Hoc) to your test group. When you’re ready for broader distribution, you can move to **App Store (unlisted)** and optionally add server-side validation later.
+
+### One-command bundle (single user, unique filename)
+
+Use the **bundling script** to build an installable IPA with one hardcoded user and a unique filename (for hosting on Google Drive):
+
+```bash
+./scripts/bundle_for_user.sh "user@example.com" "AKSK_NUMBER"
+```
+
+Output: `dist/PsychoGraph_<label>_<timestamp>.ipa`. See **scripts/README.md** for details and optional env vars (`BUNDLE_TEAM_ID`, `SCHEME`).
+
+### Failure log (debugging)
+
+The app writes **failure data** (login failures, iCloud errors, PDF export errors) to a log file. Testers can:
+
+- **Settings → Debug / Failure log → View failure log**
+- **Settings → Debug / Failure log → Export failure log** → share the file with you for debugging.
+
+No credentials are written to the log.
+
+---
+
 ## Requirements
 
 - **Xcode** (from the Mac App Store) — required to build and run on a device.

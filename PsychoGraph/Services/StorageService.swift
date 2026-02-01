@@ -1,5 +1,23 @@
 import Foundation
 
+/// Snapshot of all app data for iCloud backup/restore.
+struct PsychoGraphBackup: Codable {
+    var checkInStore: CheckInStore
+    var socialBenevolence: [String: Double]
+    var monthBenevolenceOverride: [String: Double]
+    var reminderEnabled: Bool
+    var reminderHour: Int
+    var reminderMinute: Int
+    var profileName: String
+    var profileMobile: String
+    var profilePAN: String
+    var profileAddress: String
+    var profileKendra: String
+    var profileEmail: String
+    var profileAKSK: String
+    var backupDate: Date
+}
+
 final class StorageService {
     static let shared = StorageService()
     private let key = "psychograph_checkins"
@@ -7,6 +25,14 @@ final class StorageService {
     private let reminderEnabledKey = "psychograph_reminder_enabled"
     private let reminderHourKey = "psychograph_reminder_hour"
     private let reminderMinuteKey = "psychograph_reminder_minute"
+    private let profileNameKey = "psychograph_profile_name"
+    private let profileMobileKey = "psychograph_profile_mobile"
+    private let profilePANKey = "psychograph_profile_pan"
+    private let profileAddressKey = "psychograph_profile_address"
+    private let profileKendraKey = "psychograph_profile_kendra"
+    private let profileEmailKey = "psychograph_profile_email"
+    private let profileAKSKKey = "psychograph_profile_aksk"
+    private let monthBenevolenceKey = "psychograph_month_benevolence_override"
     private let defaults = UserDefaults.standard
 
     private init() {}
@@ -32,6 +58,93 @@ final class StorageService {
             return (defaults.object(forKey: reminderMinuteKey) != nil) ? m : 0
         }
         set { defaults.set(newValue, forKey: reminderMinuteKey) }
+    }
+
+    // MARK: - Profile (user-editable: name, mobile, PAN, address, kendra; admin-only: email, AKSK)
+
+    var profileName: String {
+        get { defaults.string(forKey: profileNameKey) ?? "" }
+        set { defaults.set(newValue, forKey: profileNameKey) }
+    }
+
+    var profileMobile: String {
+        get { defaults.string(forKey: profileMobileKey) ?? "" }
+        set { defaults.set(newValue, forKey: profileMobileKey) }
+    }
+
+    var profilePAN: String {
+        get { defaults.string(forKey: profilePANKey) ?? "" }
+        set { defaults.set(newValue, forKey: profilePANKey) }
+    }
+
+    var profileAddress: String {
+        get { defaults.string(forKey: profileAddressKey) ?? "" }
+        set { defaults.set(newValue, forKey: profileAddressKey) }
+    }
+
+    var profileKendra: String {
+        get { defaults.string(forKey: profileKendraKey) ?? "" }
+        set { defaults.set(newValue, forKey: profileKendraKey) }
+    }
+
+    /// Email ID – unique identifier, set from backend by admin (invite-only). User cannot change.
+    var profileEmail: String {
+        get { defaults.string(forKey: profileEmailKey) ?? "" }
+        set { defaults.set(newValue, forKey: profileEmailKey) }
+    }
+
+    /// AKSK number – unique identifier, set from backend by admin (invite-only). User cannot change.
+    var profileAKSK: String {
+        get { defaults.string(forKey: profileAKSKKey) ?? "" }
+        set { defaults.set(newValue, forKey: profileAKSKKey) }
+    }
+
+    /// User is allowed to use the app only after first-launch login (AKSK + email) matches bundle.
+    var isAuthenticated: Bool {
+        !profileEmail.isEmpty && !profileAKSK.isEmpty
+    }
+
+    /// Max allowed invite-only users per bundle (closed user group for testing).
+    private static let maxBundleProfiles = 25
+
+    /// Clears auth profile (email, AKSK) and posts userDidLogout so the app shows LoginView again. Use for testing login.
+    func logout() {
+        profileEmail = ""
+        profileAKSK = ""
+        NotificationCenter.default.post(name: .userDidLogout, object: nil)
+    }
+
+    /// First-launch login: username = AKSK, password = email. Validates against DefaultProfile.plist in bundle (up to 25 users).
+    /// If match, saves to UserDefaults and returns true; otherwise returns false.
+    func validateAndLogin(username: String, password: String) -> Bool {
+        let profiles = loadBundleProfiles()
+        let user = username.trimmingCharacters(in: .whitespacesAndNewlines)
+        let pass = password.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let match = profiles.first(where: { $0.aksk == user && $0.email == pass }) else { return false }
+        profileAKSK = match.aksk
+        profileEmail = match.email
+        return true
+    }
+
+    /// Load invite list from DefaultProfile.plist in app bundle (no server). Up to 25 (email, AKSK) pairs.
+    /// Supports: (1) "Profiles" array of dicts with ProfileEmail + ProfileAKSK, or (2) legacy single ProfileEmail + ProfileAKSK at top level.
+    private func loadBundleProfiles() -> [(email: String, aksk: String)] {
+        guard let url = Bundle.main.url(forResource: "DefaultProfile", withExtension: "plist"),
+              let dict = NSDictionary(contentsOf: url) as? [String: Any] else {
+            return []
+        }
+        if let arr = dict["Profiles"] as? [[String: Any]] {
+            let pairs = arr.prefix(Self.maxBundleProfiles).compactMap { item -> (email: String, aksk: String)? in
+                let email = (item["ProfileEmail"] as? String) ?? ""
+                let aksk = (item["ProfileAKSK"] as? String) ?? ""
+                return (!email.isEmpty && !aksk.isEmpty) ? (email, aksk) : nil
+            }
+            return pairs
+        }
+        let email = (dict["ProfileEmail"] as? String) ?? ""
+        let aksk = (dict["ProfileAKSK"] as? String) ?? ""
+        if !email.isEmpty && !aksk.isEmpty { return [(email, aksk)] }
+        return []
     }
 
     func loadStore() -> CheckInStore {
@@ -85,6 +198,50 @@ final class StorageService {
             .reduce(0, +)
     }
 
+    /// Sum of all stored social benevolence hours (all time).
+    func getCumulativeSocialBenevolence() -> Double {
+        loadSocialBenevolence().values.reduce(0, +)
+    }
+
+    // MARK: - Month-level benevolence override (for PDF export; used when user enters श्रमानंद तास per month)
+
+    func setMonthBenevolenceOverride(year: Int, month: Int, hours: Double) {
+        var dict = loadMonthBenevolenceOverride()
+        let key = String(format: "%04d-%02d", year, month)
+        if hours >= 0 {
+            dict[key] = hours
+        } else {
+            dict.removeValue(forKey: key)
+        }
+        saveMonthBenevolenceOverride(dict)
+    }
+
+    func getMonthBenevolenceOverride(year: Int, month: Int) -> Double? {
+        let key = String(format: "%04d-%02d", year, month)
+        return loadMonthBenevolenceOverride()[key]
+    }
+
+    /// Effective month total for display/PDF: override if set, else sum of daily social benevolence.
+    func getMonthBenevolenceForReport(year: Int, month: Int) -> Double {
+        if let override = getMonthBenevolenceOverride(year: year, month: month) {
+            return override
+        }
+        return getMonthTotalSocialBenevolence(year: year, month: month)
+    }
+
+    private func loadMonthBenevolenceOverride() -> [String: Double] {
+        guard let data = defaults.data(forKey: monthBenevolenceKey),
+              let decoded = try? JSONDecoder().decode([String: Double].self, from: data) else {
+            return [:]
+        }
+        return decoded
+    }
+
+    private func saveMonthBenevolenceOverride(_ dict: [String: Double]) {
+        guard let data = try? JSONEncoder().encode(dict) else { return }
+        defaults.set(data, forKey: monthBenevolenceKey)
+    }
+
     private func loadSocialBenevolence() -> [String: Double] {
         guard let data = defaults.data(forKey: socialBenevolenceKey),
               let decoded = try? JSONDecoder().decode([String: Double].self, from: data) else {
@@ -98,42 +255,71 @@ final class StorageService {
         defaults.set(data, forKey: socialBenevolenceKey)
     }
 
-    // MARK: - Sample data for testing Report / GraphView
+    // MARK: - iCloud backup / restore
 
-    /// Seeds random check-ins for the given month so the report grid shows filled dots. Call when you need test data (e.g. GraphView .onAppear when that month has no entries).
-    func seedSampleDataIfNeeded(year: Int, month: Int) {
-        let prefix = String(format: "%04d-%02d-", year, month)
+    /// Export current data for backup (e.g. to iCloud).
+    func exportForBackup() -> PsychoGraphBackup {
+        PsychoGraphBackup(
+            checkInStore: loadStore(),
+            socialBenevolence: loadSocialBenevolence(),
+            monthBenevolenceOverride: loadMonthBenevolenceOverride(),
+            reminderEnabled: reminderEnabled,
+            reminderHour: reminderHour,
+            reminderMinute: reminderMinute,
+            profileName: profileName,
+            profileMobile: profileMobile,
+            profilePAN: profilePAN,
+            profileAddress: profileAddress,
+            profileKendra: profileKendra,
+            profileEmail: profileEmail,
+            profileAKSK: profileAKSK,
+            backupDate: Date()
+        )
+    }
+
+    /// Apply a backup onto current storage (overwrites local data).
+    func applyBackup(_ backup: PsychoGraphBackup) {
+        saveStore(backup.checkInStore)
+        saveSocialBenevolence(backup.socialBenevolence)
+        saveMonthBenevolenceOverride(backup.monthBenevolenceOverride)
+        reminderEnabled = backup.reminderEnabled
+        reminderHour = backup.reminderHour
+        reminderMinute = backup.reminderMinute
+        profileName = backup.profileName
+        profileMobile = backup.profileMobile
+        profilePAN = backup.profilePAN
+        profileAddress = backup.profileAddress
+        profileKendra = backup.profileKendra
+        profileEmail = backup.profileEmail
+        profileAKSK = backup.profileAKSK
+    }
+
+    /// True if there is any check-in or profile data (used to offer restore when empty).
+    var hasAnyUserData: Bool {
         let store = loadStore()
-        let hasDataForMonth = store.entries.keys.contains { $0.hasPrefix(prefix) }
-        if hasDataForMonth { return }
-
-        let calendar = Calendar.current
-        guard let range = calendar.range(of: .day, in: .month, for: dateFor(year: year, month: month)) else { return }
-        var newStore = store
-        var seed = UInt64(year * 100 + month)
-        for day in range {
-            let dateKey = String(format: "%04d-%02d-%02d", year, month, day)
-            for category in PsychoCategory.allCases {
-                for subIndex in 0..<category.subcategoryCount where !category.subcategoryLabels[subIndex].isEmpty {
-                    if nextRandom(seed: &seed, max: 100) < 35 {
-                        newStore.set(dateKey: dateKey, categoryId: category.rawValue, subcategoryIndex: subIndex, value: 1)
-                    }
-                }
-            }
-        }
-        saveStore(newStore)
+        let hasCheckIns = !store.entries.isEmpty
+        let hasProfile = !profileName.isEmpty || !profileMobile.isEmpty || !profileKendra.isEmpty
+        let hasBenevolence = !loadSocialBenevolence().isEmpty
+        return hasCheckIns || hasProfile || hasBenevolence
     }
 
-    private func dateFor(year: Int, month: Int) -> Date {
-        var c = DateComponents()
-        c.year = year
-        c.month = month
-        c.day = 1
-        return Calendar.current.date(from: c) ?? Date()
+    // MARK: - Clear report data
+
+    private static let reportDataClearedOnceKey = "psychograph_report_data_cleared_once"
+
+    /// Clears all report data: check-ins, social benevolence hours, and month benevolence overrides. Profile and reminder settings are kept. Posts PsychoGraphReportDataDidClear when done.
+    func clearAllReportData() {
+        defaults.removeObject(forKey: key)
+        defaults.removeObject(forKey: socialBenevolenceKey)
+        defaults.removeObject(forKey: monthBenevolenceKey)
+        NotificationCenter.default.post(name: .psychographReportDataDidClear, object: nil)
     }
 
-    private func nextRandom(seed: inout UInt64, max: Int) -> Int {
-        seed = seed &* 6364136223846793005 &+ 1442695040888963407
-        return Int(truncatingIfNeeded: seed % UInt64(max))
+    /// Runs once per install to clear any previously seeded dummy report data. Call from app launch.
+    func clearReportDataOnceIfNeeded() {
+        guard !defaults.bool(forKey: Self.reportDataClearedOnceKey) else { return }
+        clearAllReportData()
+        defaults.set(true, forKey: Self.reportDataClearedOnceKey)
     }
+
 }

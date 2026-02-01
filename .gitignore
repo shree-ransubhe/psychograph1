@@ -1,5 +1,6 @@
 # Xcode
 build/
+dist/
 DerivedData/
 *.pbxuser
 !default.pbxuser
@@ -10,12 +11,16 @@ DerivedData/
 *.perspectivev3
 !default.perspectivev3
 xcuserdata/
+**/xcuserdata/
+*.xcuserstate
 *.xccheckout
 *.moved-aside
 *.hmap
 *.ipa
 *.dSYM.zip
 *.dSYM
+UserInterfaceState.xcuserstate
+Breakpoints_v2.xcbkptlist
 
 # macOS
 .DS_Store
@@ -26,3 +31,12 @@ Thumbs.db
 # Swift Package Manager
 .build/
 .swiftpm/
+
+# Report / user data (GraphView data lives in UserDefaults & app sandbox; exclude any copies in project)
+PsychoGraph_backup_*.json
+PsychoGraph_Report_*.pdf
+psychograph_failure_log.txt
+psychograph_backup.json
+
+# Cursor / IDE (optional)
+.cursor/

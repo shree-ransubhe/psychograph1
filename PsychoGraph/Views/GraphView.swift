@@ -15,6 +15,8 @@ struct GraphView: View {
     @State private var store: CheckInStore = CheckInStore()
     @State private var horizontalScrollOffset: CGFloat = 0
     @State private var showAddTodaysGraphSheet = false
+    @State private var showExportReportSheet = false
+    @State private var showPortraitToast = false
 
     private let calendar = Calendar.current
     private var isPortrait: Bool { horizontalSizeClass == .compact }
@@ -59,38 +61,40 @@ struct GraphView: View {
                         }
                     }
                     .pickerStyle(.menu)
+                    .frame(minWidth: 56)
                     .onChange(of: selectedYear) { _, _ in
-                        StorageService.shared.seedSampleDataIfNeeded(year: selectedYear, month: selectedMonth)
                         refreshStore()
                     }
 
                     Picker("Month", selection: $selectedMonth) {
                         ForEach(1...12, id: \.self) { month in
-                            Text(monthName(month)).tag(month)
+                            Text(monthNameShort(month)).tag(month)
                         }
                     }
                     .pickerStyle(.menu)
+                    .frame(minWidth: 44)
                     .onChange(of: selectedMonth) { _, _ in
-                        StorageService.shared.seedSampleDataIfNeeded(year: selectedYear, month: selectedMonth)
                         refreshStore()
                     }
 
                     Spacer(minLength: 0)
 
                     // Chevrons: previous / next month
-                    Button {
-                        goToPreviousMonth()
-                    } label: {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(AppTheme.textPrimary)
-                    }
-                    Button {
-                        goToNextMonth()
-                    } label: {
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(AppTheme.textPrimary)
+                    HStack(spacing: AppTheme.spacingL) {
+                        Button {
+                            goToPreviousMonth()
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(AppTheme.textPrimary)
+                        }
+                        Button {
+                            goToNextMonth()
+                        } label: {
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(AppTheme.textPrimary)
+                        }
                     }
                 }
                 .padding(.horizontal, AppTheme.spacingM)
@@ -106,14 +110,34 @@ struct GraphView: View {
                 graphContentWithHorizontalOrientation
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(AppTheme.surface)
+            .background(Color(uiColor: .systemBackground))
+            .overlay(alignment: .top) {
+                if showPortraitToast {
+                    portraitRotateToast(onDismiss: { showPortraitToast = false })
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .top).combined(with: .opacity),
+                            removal: .opacity.combined(with: .move(edge: .top))
+                        ))
+                        .zIndex(1)
+                }
+            }
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showPortraitToast)
             .navigationTitle("Report")
+            .navigationBarTitleDisplayMode(isPortrait ? .inline : .automatic)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button("+ Add") {
                         showAddTodaysGraphSheet = true
                     }
                     .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(AppTheme.primary)
+                }
+                ToolbarItem(placement: .secondaryAction) {
+                    Button {
+                        showExportReportSheet = true
+                    } label: {
+                        Label("Export Report", systemImage: "square.and.arrow.up")
+                    }
                     .foregroundStyle(AppTheme.primary)
                 }
             }
@@ -127,11 +151,51 @@ struct GraphView: View {
                     }
                 )
             }
+            .sheet(isPresented: $showExportReportSheet) {
+                ExportReportView(
+                    initialFromYear: selectedYear,
+                    initialFromMonth: selectedMonth,
+                    initialToYear: selectedYear,
+                    initialToMonth: selectedMonth
+                )
+            }
             .onAppear {
-                StorageService.shared.seedSampleDataIfNeeded(year: selectedYear, month: selectedMonth)
+                refreshStore()
+                if isPortrait { showPortraitToast = true }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .psychographReportDataDidClear)) { _ in
                 refreshStore()
             }
         }
+    }
+
+    /// Toast shown in portrait only: "For better experience just rotate phone to landscape mode." Dismissed only when user taps close.
+    private func portraitRotateToast(onDismiss: @escaping () -> Void) -> some View {
+        HStack(spacing: AppTheme.spacingS) {
+            Image(systemName: "rotate.right")
+                .font(.system(size: 18, weight: .medium))
+                .foregroundStyle(AppTheme.primary)
+            Text("For better experience just rotate phone to landscape mode.")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(Color(uiColor: .label))
+                .multilineTextAlignment(.leading)
+            Spacer(minLength: 0)
+            Button {
+                onDismiss()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 20))
+                    .foregroundStyle(Color(uiColor: .tertiaryLabel))
+            }
+        }
+        .padding(.horizontal, AppTheme.spacingM)
+        .padding(.vertical, AppTheme.spacingS)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(uiColor: .secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: AppTheme.cardCornerRadiusSmall))
+        .shadow(color: Color.black.opacity(0.12), radius: 8, x: 0, y: 2)
+        .padding(.horizontal, AppTheme.spacingM)
+        .padding(.top, AppTheme.spacingS)
     }
 
     private func goToPreviousMonth() {
@@ -141,7 +205,6 @@ struct GraphView: View {
         } else {
             selectedMonth -= 1
         }
-        StorageService.shared.seedSampleDataIfNeeded(year: selectedYear, month: selectedMonth)
         refreshStore()
     }
 
@@ -152,7 +215,6 @@ struct GraphView: View {
         } else {
             selectedMonth += 1
         }
-        StorageService.shared.seedSampleDataIfNeeded(year: selectedYear, month: selectedMonth)
         refreshStore()
     }
 
@@ -227,7 +289,7 @@ struct GraphView: View {
                         portraitCategoryHeaderRow(columns: columns, parentColWidth: parentColWidth, subcategoryColWidth: subcategoryColWidth)
                             .frame(width: columnsTotalWidth)
                     }
-                    .background(AppTheme.sectionHeaderGrey)
+                    .background(Color(uiColor: .tertiarySystemBackground))
 
                     // Data rows: day # column + one row per day (grey parent cells + dots)
                     HStack(alignment: .top, spacing: 0) {
@@ -250,7 +312,7 @@ struct GraphView: View {
                                         case .parent:
                                             Color.clear
                                                 .frame(width: colWidth, height: rowHeight)
-                                                .background(AppTheme.sectionHeaderGrey)
+                                                .background(Color(uiColor: .tertiarySystemBackground))
                                         case .subcategory(let category, let subIndex, _):
                                             let dateKey = dateKey(for: day)
                                             let isFilled = store.get(dateKey: dateKey, categoryId: category.rawValue, subcategoryIndex: subIndex) == 1
@@ -272,7 +334,7 @@ struct GraphView: View {
                 .frame(width: totalContentWidth, alignment: .leading)
                 .frame(minWidth: cardWidth, alignment: .leading)
             }
-            .background(AppTheme.cardBackground)
+            .background(Color(uiColor: .secondarySystemBackground))
             .clipShape(RoundedRectangle(cornerRadius: AppTheme.cardCornerRadiusSmall))
             .shadow(color: AppTheme.cardShadow, radius: 4, x: 0, y: 2)
             .padding(.horizontal, edgePadding)
@@ -299,7 +361,7 @@ struct GraphView: View {
                         .frame(width: colWidth, height: portraitCategoryRowHeight, alignment: .topLeading)
                         .rotationEffect(.degrees(90))
                         .frame(width: colWidth, height: portraitCategoryRowHeight, alignment: .topLeading)
-                        .background(AppTheme.sectionHeaderGrey)
+                        .background(Color(uiColor: .tertiarySystemBackground))
                 case .subcategory(_, _, let label):
                     Text(label)
                         .font(.system(size: 9, weight: .regular))
@@ -310,7 +372,7 @@ struct GraphView: View {
                         .frame(width: subcategoryColWidth, height: portraitCategoryRowHeight, alignment: .topLeading)
                         .rotationEffect(.degrees(90))
                         .frame(width: subcategoryColWidth, height: portraitCategoryRowHeight, alignment: .topLeading)
-                        .background(AppTheme.cardBackground)
+                        .background(Color(uiColor: .secondarySystemBackground))
                 }
             }
         }
@@ -353,7 +415,7 @@ struct GraphView: View {
                 }
             }
             .frame(maxWidth: .infinity)
-            .background(AppTheme.cardBackground)
+            .background(Color(uiColor: .secondarySystemBackground))
             .clipShape(RoundedRectangle(cornerRadius: AppTheme.cardCornerRadiusSmall))
             .shadow(color: AppTheme.cardShadow, radius: 4, x: 0, y: 2)
 
@@ -380,7 +442,7 @@ struct GraphView: View {
             }
         }
         .frame(width: dateColWidth)
-        .background(AppTheme.sectionHeaderGrey)
+        .background(Color(uiColor: .tertiarySystemBackground))
     }
 
     /// One data row for a given day: grey parent cells + dot cells per subcategory.
@@ -392,7 +454,7 @@ struct GraphView: View {
                 case .parent:
                     Color.clear
                         .frame(width: colWidth, height: rowHeight)
-                        .background(AppTheme.sectionHeaderGrey)
+                        .background(Color(uiColor: .tertiarySystemBackground))
                 case .subcategory(let category, let subIndex, _):
                     let dateKey = dateKey(for: day)
                     let isFilled = store.get(dateKey: dateKey, categoryId: category.rawValue, subcategoryIndex: subIndex) == 1
@@ -401,7 +463,7 @@ struct GraphView: View {
                         .overlay(Circle().stroke(AppTheme.emptyDot, lineWidth: isFilled ? 0 : 1))
                         .frame(width: dotSize, height: dotSize)
                         .frame(width: subcategoryColWidth, height: rowHeight, alignment: .center)
-                        .background(AppTheme.cardBackground)
+                        .background(Color(uiColor: .secondarySystemBackground))
                 }
             }
         }
@@ -455,7 +517,7 @@ struct GraphView: View {
                     .frame(maxWidth: scrollContentWidth, alignment: .leading)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(AppTheme.cardBackground)
+                .background(Color(uiColor: .secondarySystemBackground))
                 .clipShape(RoundedRectangle(cornerRadius: AppTheme.cardCornerRadiusSmall))
                 .shadow(color: AppTheme.cardShadow, radius: 4, x: 0, y: 2)
                 .onPreferenceChange(ScrollOffsetPreferenceKey.self) { horizontalScrollOffset = $0 }
@@ -484,7 +546,7 @@ struct GraphView: View {
                     .minimumScaleFactor(0.75)
                     .frame(width: leftColumnWidth, height: sectionHeaderHeight, alignment: .leading)
                     .padding(.leading, 2)
-                    .background(AppTheme.sectionHeaderGrey)
+                    .background(Color(uiColor: .tertiarySystemBackground))
 
                 ForEach(Array(section.rows.enumerated()), id: \.offset) { _, row in
                     Text("\(row.subIndex + 1)) \(row.label)")
@@ -505,7 +567,7 @@ struct GraphView: View {
                 // Section header row: grey background, no dots
                 Color.clear
                     .frame(width: CGFloat(days) * cellSize, height: sectionHeaderHeight)
-                    .background(AppTheme.sectionHeaderGrey)
+                    .background(Color(uiColor: .tertiarySystemBackground))
 
                 ForEach(Array(section.rows.enumerated()), id: \.offset) { _, row in
                     HStack(spacing: 0) {
@@ -556,7 +618,7 @@ struct GraphView: View {
         .frame(height: dayHeaderHeight)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, isPortrait ? 0 : edgePadding)
-        .background(AppTheme.cardBackground)
+        .background(Color(uiColor: .secondarySystemBackground))
         .shadow(color: AppTheme.cardShadow, radius: 2, x: 0, y: 1)
     }
 
@@ -572,9 +634,10 @@ struct GraphView: View {
         String(format: "%04d-%02d-%02d", selectedYear, selectedMonth, day)
     }
 
-    private func monthName(_ month: Int) -> String {
+    /// MMM format (e.g. Jan, Feb) for month selector CTA.
+    private func monthNameShort(_ month: Int) -> String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM"
+        formatter.dateFormat = "MMM"
         var comps = DateComponents()
         comps.month = month
         comps.day = 1
