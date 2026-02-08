@@ -19,7 +19,6 @@ struct SettingsView: View {
     @State private var restoreAlertMessage = ""
     @State private var showFailureLogView = false
     @State private var showFailureLogShare = false
-    @State private var showClearReportDataConfirmation = false
 
     private static func defaultReminderDate() -> Date {
         let s = StorageService.shared
@@ -35,11 +34,10 @@ struct SettingsView: View {
                 profileSection
                 remindersSection
                 exportReportSection
-                reportDataSection
                 dataBackupSection
                 failureLogSection
                 Section {
-                    Text("Beta-1.0")
+                    Text("Beta-1.2")
                         .font(AppTheme.captionSecondary())
                         .foregroundStyle(AppTheme.textTertiary)
                         .frame(maxWidth: .infinity)
@@ -98,14 +96,6 @@ struct SettingsView: View {
                     ShareSheet(activityItems: [url])
                 }
             }
-            .alert("Clear all report data?", isPresented: $showClearReportDataConfirmation) {
-                Button("Cancel", role: .cancel) { }
-                Button("Clear", role: .destructive) {
-                    storage.clearAllReportData()
-                }
-            } message: {
-                Text("This will remove all check-ins and benevolence hours from the report. Profile and reminder settings are kept. This cannot be undone.")
-            }
         }
     }
 
@@ -160,27 +150,6 @@ struct SettingsView: View {
                 .foregroundStyle(AppTheme.textSecondary)
         } footer: {
             Text("You'll get a notification at the chosen time each day to log your state of mind.")
-                .font(AppTheme.caption())
-                .foregroundStyle(AppTheme.textTertiary)
-        }
-    }
-
-    private var reportDataSection: some View {
-        Section {
-            Button(role: .destructive) {
-                showClearReportDataConfirmation = true
-            } label: {
-                HStack {
-                    Image(systemName: "trash")
-                    Text("Clear all report data")
-                }
-            }
-        } header: {
-            Text("Report data")
-                .font(AppTheme.sectionHeader())
-                .foregroundStyle(AppTheme.textSecondary)
-        } footer: {
-            Text("Removes all check-ins and benevolence hours shown on the Report tab. Use this to start fresh.")
                 .font(AppTheme.caption())
                 .foregroundStyle(AppTheme.textTertiary)
         }

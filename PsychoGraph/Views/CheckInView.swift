@@ -3,14 +3,28 @@ import UIKit
 
 struct CheckInView: View {
     @Binding var showAddSheet: Bool
+    @Binding var sheetInitialDate: Date
+    @Binding var pendingBenevolenceDate: Date?
 
-    @State private var socialBenevolenceDate = Date()
+    @State private var socialBenevolenceDate: Date
     @State private var socialBenevolenceHoursText = ""
     @State private var selectedMonthTotal: Double = 0
     @State private var cumulativeTotal: Double = 0
     @State private var savedFeedbackShown = false
 
     private let calendar = Calendar.current
+
+    init(showAddSheet: Binding<Bool>, sheetInitialDate: Binding<Date> = .constant(Date()), pendingBenevolenceDate: Binding<Date?> = .constant(nil)) {
+        _showAddSheet = showAddSheet
+        _sheetInitialDate = sheetInitialDate
+        _pendingBenevolenceDate = pendingBenevolenceDate
+        _socialBenevolenceDate = State(initialValue: CheckInView.yesterday())
+    }
+
+    /// Default check-in date is always yesterday (T-1); user can change to today or any other date.
+    private static func yesterday() -> Date {
+        Calendar.current.date(byAdding: .day, value: -1, to: Date()) ?? Date()
+    }
 
     /// Canonical date key (yyyy-MM-dd) for the selected date, normalized to start of day so storage is consistent.
     private var dateKey: String {
@@ -32,10 +46,20 @@ struct CheckInView: View {
         NavigationStack {
             List {
                 Section {
-                    Button(action: { showAddSheet = true }) {
+                    Text("How was your day yesterday?")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .padding(.vertical, 2)
+                }
+
+                Section {
+                    Button(action: {
+                        sheetInitialDate = CheckInView.yesterday()
+                        showAddSheet = true
+                    }) {
                         HStack {
                             Spacer()
-                            Text("Add Today's Graph")
+                            Text("Add Yesterday's Graph")
                                 .font(.headline)
                             Spacer()
                         }
@@ -58,8 +82,12 @@ struct CheckInView: View {
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                     }
-                    Button(action: saveBenevolenceHours) {
-                        HStack {
+                    HStack(spacing: 16) {
+                        Button("Cancel") {
+                            dismissKeyboard()
+                        }
+                        .foregroundStyle(.secondary)
+                        Button(action: saveBenevolenceHours) {
                             if savedFeedbackShown {
                                 Label("Saved", systemImage: "checkmark.circle.fill")
                                     .foregroundStyle(.green)
@@ -67,8 +95,8 @@ struct CheckInView: View {
                                 Text("Save hours")
                             }
                         }
+                        .disabled(socialBenevolenceHoursText.isEmpty)
                     }
-                    .disabled(socialBenevolenceHoursText.isEmpty)
                     Text("You can log श्रमानंद तास as and when it's done. The system will sum it up for the month. You can also add or edit hours when exporting the monthly report.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -90,6 +118,14 @@ struct CheckInView: View {
                 loadBenevolenceHours()
                 loadTotals()
             }
+            .onChange(of: pendingBenevolenceDate) { _, newValue in
+                if let date = newValue {
+                    socialBenevolenceDate = date
+                    loadBenevolenceHours()
+                    loadTotals()
+                    pendingBenevolenceDate = nil
+                }
+            }
         }
     }
 
@@ -106,8 +142,12 @@ struct CheckInView: View {
         cumulativeTotal = StorageService.shared.getCumulativeSocialBenevolence()
     }
 
-    private func saveBenevolenceHours() {
+    private func dismissKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+
+    private func saveBenevolenceHours() {
+        dismissKeyboard()
         let hours = Double(socialBenevolenceHoursText.replacingOccurrences(of: ",", with: ".")) ?? 0
         StorageService.shared.setSocialBenevolenceHours(dateKey: dateKey, hours: max(0, hours))
         loadTotals()

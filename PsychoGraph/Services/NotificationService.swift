@@ -28,8 +28,12 @@ final class NotificationService {
 
         let content = UNMutableNotificationContent()
         content.title = "PsychoGraph Check-in"
-        content.body = "How is your state of mind today? Tap to log."
+        content.body = "Log yesterday’s state of mind. Tap to open."
         content.sound = .default
+        content.categoryIdentifier = "PSYCHOGRAPH_REMINDER"
+        if #available(iOS 15.0, *) {
+            content.interruptionLevel = .timeSensitive
+        }
 
         var dateComponents = DateComponents()
         dateComponents.hour = hour

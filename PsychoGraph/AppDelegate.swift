@@ -14,6 +14,8 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         if response.notification.request.identifier == kPsychographDailyReminderIdentifier {
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.warning)
             DispatchQueue.main.async {
                 NotificationCenter.default.post(name: .openAddTodaysGraph, object: nil)
             }

@@ -27,6 +27,42 @@ struct SubcategoryView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Category strip: tap to switch, signals that swipe also works
+            VStack(spacing: AppTheme.spacingS) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: AppTheme.spacingS) {
+                        ForEach(Array(categories.enumerated()), id: \.element.id) { index, category in
+                            Button {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    currentPageIndex = index
+                                }
+                            } label: {
+                                Text(category.displayName)
+                                    .font(.system(size: 14, weight: currentPageIndex == index ? .semibold : .regular))
+                                    .foregroundStyle(currentPageIndex == index ? .white : AppTheme.textPrimary)
+                                    .padding(.horizontal, AppTheme.spacingM)
+                                    .padding(.vertical, AppTheme.spacingS)
+                            }
+                            .buttonStyle(.plain)
+                            .background(
+                                RoundedRectangle(cornerRadius: AppTheme.cardCornerRadiusSmall)
+                                    .fill(currentPageIndex == index ? AppTheme.primary : AppTheme.sectionHeaderGrey)
+                            )
+                        }
+                    }
+                    .padding(.horizontal, AppTheme.spacingM)
+                }
+                .padding(.vertical, AppTheme.spacingS)
+                .background(AppTheme.surface)
+
+                Text("Swipe or tap a category to switch")
+                    .font(AppTheme.captionSecondary())
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .padding(.horizontal, AppTheme.spacingM)
+                    .padding(.bottom, AppTheme.spacingXS)
+            }
+            .background(AppTheme.surface)
+
             TabView(selection: $currentPageIndex) {
                 ForEach(Array(categories.enumerated()), id: \.element.id) { index, category in
                     subcategoryPage(category: category)

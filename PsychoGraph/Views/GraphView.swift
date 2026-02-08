@@ -145,7 +145,7 @@ struct GraphView: View {
                 AddTodaysGraphView(
                     initialDate: Date(),
                     onDismiss: { showAddTodaysGraphSheet = false },
-                    onCompleteAndGoToReport: {
+                    onCompleteAndGoToReport: { _ in
                         showAddTodaysGraphSheet = false
                         refreshStore()
                     }
